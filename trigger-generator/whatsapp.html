@@ -1,70 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Enviar Mensagem via WhatsApp</title>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enviar Mensagem via WhatsApp</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h2 class="text-center">Gerador de Disparo WhatsApp (MANUAL)</h2>
 
-<div class="container">
-  <h2 class="text-center">Gerador de Disparo WhatsApp (MANUAL)</h2>
-
-  <div class="row">
-    <form class="col-md-6 mx-auto" id="whatsappForm">
-      <div class="form-group">
-        <label for="phoneNumbers">Adicionar Telefones:</label>
-        <textarea id="phoneNumbers" class="form-control" rows="4"></textarea>
+      <div class="row">
+        <form class="col-md-6 mx-auto" id="whatsappForm">
+          <div class="form-group">
+            <label for="phoneNumbers"
+              >Adicionar Telefones (nome, telefone):</label
+            >
+            <textarea
+              id="phoneNumbers"
+              class="form-control"
+              rows="4"
+              placeholder="Exemplo:&#10;João,11999999999&#10;Maria,11888888888"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="message">Mensagem:</label>
+            <textarea
+              id="message"
+              class="form-control"
+              rows="4"
+              required
+              placeholder="Use {nome} para personalizar."
+            ></textarea>
+          </div>
+          <div class="form-group text-center">
+            <button
+              class="btn btn-primary"
+              type="button"
+              onclick="addPhoneButtons()"
+            >
+              Gerar Botões
+            </button>
+          </div>
+          <div class="form-group">
+            <div id="phoneNumbersList"></div>
+          </div>
+        </form>
       </div>
-      <div class="form-group">
-        <label for="message">Mensagem:</label>
-        <textarea id="message" class="form-control" rows="4" required></textarea>
-      </div>
-      <div class="form-group text-center">
-        <button class="btn btn-primary" type="button" onclick="addPhoneButtons()">Gerar Botões</button>
-      </div>
-      <div class="form-group">
-        <div id="phoneNumbersList"></div>
-      </div>
-    </form>
-  </div>
-</div>
+    </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script>
-function addPhoneButtons() {
-  var phoneNumbersInput = document.getElementById("phoneNumbers").value.trim();
-  var phoneNumbersArray = phoneNumbersInput.split(/\s+|,+|\r?\n/);
-  
-  var phoneNumbersList = document.getElementById("phoneNumbersList");
-  phoneNumbersList.innerHTML = ""; // Limpa a lista antes de adicionar novos botões
-  
-  for (var i = 0; i < phoneNumbersArray.length; i++) {
-    var phoneNumber = phoneNumbersArray[i].trim();
-    if (phoneNumber !== "") {
-      var phoneNumberButton = document.createElement("a");
-      phoneNumberButton.classList.add("btn", "btn-secondary", "mr-2", "mb-2");
-      phoneNumberButton.innerText = phoneNumber;
-      phoneNumberButton.href = generateWhatsAppLink(phoneNumber);
-      phoneNumberButton.target = "_blank"; // Abre em nova aba/janela
-      phoneNumberButton.onclick = function() {
-        this.innerText = this.innerText.split(" ")[0] + " OK";
-        this.classList.remove("btn-secondary");
-        this.classList.add("btn-danger");
-      };
-      phoneNumbersList.appendChild(phoneNumberButton);
-    }
-  }
-}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      function addPhoneButtons() {
+        var phoneNumbersInput = document
+          .getElementById('phoneNumbers')
+          .value.trim();
+        var phoneNumbersArray = phoneNumbersInput.split(/\r?\n/); // Quebra por linha
 
-function generateWhatsAppLink(phoneNumber) {
-  var message = encodeURIComponent(document.getElementById("message").value);
-  return "https://api.whatsapp.com/send?phone=55" + phoneNumber + "&text=" + message;
-}
-</script>
+        var phoneNumbersList = document.getElementById('phoneNumbersList');
+        phoneNumbersList.innerHTML = ''; // Limpa a lista antes de adicionar novos botões
 
-</body>
+        for (var i = 0; i < phoneNumbersArray.length; i++) {
+          var line = phoneNumbersArray[i].trim();
+          if (line !== '') {
+            var parts = line.split(',');
+            if (parts.length !== 2) continue; // Pula linhas inválidas
+
+            var name = parts[0].trim();
+            var phoneNumber = parts[1].trim();
+
+            var phoneNumberButton = document.createElement('a');
+            phoneNumberButton.classList.add(
+              'btn',
+              'btn-secondary',
+              'mr-2',
+              'mb-2',
+            );
+            phoneNumberButton.innerText = name + ' - ' + phoneNumber;
+            phoneNumberButton.href = generateWhatsAppLink(phoneNumber, name);
+            phoneNumberButton.target = '_blank'; // Abre em nova aba/janela
+            phoneNumberButton.onclick = function () {
+              this.innerText = this.innerText.split(' ')[0] + ' OK';
+              this.classList.remove('btn-secondary');
+              this.classList.add('btn-danger');
+            };
+            phoneNumbersList.appendChild(phoneNumberButton);
+          }
+        }
+      }
+
+      function generateWhatsAppLink(phoneNumber, name) {
+        var messageTemplate = document.getElementById('message').value;
+        var personalizedMessage = messageTemplate.replace(/{nome}/g, name);
+        var message = encodeURIComponent(personalizedMessage);
+        return (
+          'https://api.whatsapp.com/send?phone=55' +
+          phoneNumber +
+          '&text=' +
+          message
+        );
+      }
+    </script>
+  </body>
 </html>
